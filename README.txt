@@ -17,119 +17,109 @@ CS909 Assignment 8 Week 10 Text Classification, Clustering, and Topic Models
 .-"-.     .-"-.     .-"-.     .-"-.     .-"-.     .-"-.     .-"-.     .-"-.     .-"-.   
      "-.-"     "-.-"     "-.-"     "-.-"     "-.-"     "-.-"     "-.-"     "-.-"     "-.
 
+----------------------------------------------------------------------
+| INSTRUCTIONS TO RUN HERE - GO TO BOTTOM FOR DATA FILE DESCRIPTION. |
+----------------------------------------------------------------------
+
 
 1) DATA-SELECTION AND PREPROCESSING:
 ------------------------------------
 
+Begin with an fresh session of R. Run lines 1-106 of main.R for a preprocessed version of 
+ModApte split for Reuters-21578 dataset (preprocessing steps in comments). Beware long run-
+time due to POS-tagging step. Omit if time limited!
+
+NOTE: do not require package "caret" before doing this as it masks the "NLP" function 
+"annotate" required for POS tagging.
 
 
 
+2) BUILDING MODELS ON TRAINING SET:
+-----------------------------------
+
+First run lines 114-135 of main.R to obtain the required variables. Now run lines 137-298 
+of main.R to load in the main model building and evaluation function: evalClassifier
+
+      -> Input: training corpus, training class required, desired feature selection function 
+                from FSelector package, number of folds, and number of features to evaluate 
+                the model for in steps of 1 (from 2 to nMaxFeats).
+      -> Output: Accuracy, Precision, Recall, F1 Measure
+                   - Reported for each fold.
+                   - Macro and micro averages.
+                   - Standard deviation of statistic.
+          -> These values are also reported for each feature numner from 2 to nMaxFeats, 
+             computed for Naive Bayes and SVM classifiers from e1017 package.
+
+This can be run by adjusting line 300 of main.R for your required parameters.
+
+Plots can be generated from this output using the plotting functions in plotting.R.
+Output can be tested for significance via functions in ttest.R to determine optimal model.
 
 
 
+3) RUNNING OPTIMAL MODEL ON TESTING DATA:
+-----------------------------------------
+
+As SVM was best in this study, function classifySVM created to test this as optimal model.
+Load in by running lines 5-69 of testingClassifier.R:
+
+      -> Input: training corpus, training class required, desired feature selection function 
+                from FSelector package, testing corpus, testing class required, and number 
+                of features to evaluate the model for based on outcome of best feature number
+                from previous section on training corpus.
+      -> Output: Accuracy, Precision, Recall, F1 Measure computed.
+                 Confusion matrix for additional data, generated via caret package.
+                 List of all features and their importance scores from feature selection 
+                 function.
+                 List of best performing features for this classification for later use.
+
+Running lines 70-92 of testingClassifier.R for comparisons relevant to accompanied report.
+Running lines 70-92 of testingClassifier.R for total list of best performing features.
 
 
 
+4) TOPIC MODELS:
+----------------
+
+File tpcMods.R contains very similar code to evalClassifier function from main.R, but with 
+the feature selection part FSelector functions are replaced by a version with topic models
+as LDA with Gibbs sampling method used via the topicmodels package. A combination of feature 
+types is also easy to do in this way.
 
 
 
+5) CLUSTERING:
+--------------
+
+Three methods implemented in file clusteringTests.R: Hierarchical Agglomerative Clustering, 
+K-Means, and E-M clusting to fit Gaussian finite mixture model. This is where the best
+performing features from application of the optimal model to testing data come in useful, 
+and code for each of these is partitioned in an obvious fashion by comments. Plotting 
+prototypes are also provided for each to plot using prinicpal components, and also generate
+HAC dendrogram.
+
+To evaulate and check correspondence between clusters and Topics tags use evalClust function.
+Builds matrix of clusters vs how much of each topic is in them.
 
 
-CS909  Week 10: Text classification, clustering and topic models
-Author: Elena Kochkina
 
-This code performs task of text classification on Reuters-21578 dataset.
-Dataset can be obtained
-http://www.daviddlewis.com/resources/testcollections/reuters21578/reuters21578.tar.gz.
+6) DATA FILES:
+--------------
 
-0 Load dataset to R
-follow instructions at
-http://www2.warwick.ac.uk/fac/sci/dcs/teaching/material/cs909/reuters
+For raw data files refered to in report, the files are as follows:
 
-Run this code in R iteratively
-
-Task is completed in 6 'easy' steps:
-
-1 Split the data
-
-2 Preprocessing
-auxiliary functions:
-removePunctuationCustom(x) 
-posTagStem(x)
-Input  - object of type VCorpus
-Ouput   - object of type VCorpus
-main function of preprocessing step:
-preprocessCorpus(corpus)
-Input  - object of type VCorpus
-Ouput   - object of type VCorpus
-Content of documents changed(removeNumbers, tolower,removeWords, removePunctuationCustom, stripWhitespace, posTagStem).
-Meta data preserved.
-3 Feature selection and classifier comparisson on training data
-evalClassifier(train_corpus,train_class,fSelectFunc,nFolds,nMaxFeats)
-Input  - train_corpus  - object of type VCorpus
-         train_class - data frame with columns of binary classes  
-         fSelectFunc - function from package fSelect for evaluation importance of features
-         nFolds - integer -  for nFolds cross-validation
-         nMaxFeats - integer - maximum number of features
-Output - Accuracy per Fold,  Mean Accuracy,St Dev Accuracy,Precisions per Fold,
-       Mean Precisions, St Dev Precisions, Micro Ave Precisions, Recalls per Fold,
-       Mean Recalls, St Dev Recalls, Micro Ave Recalls,F1 Measure,Mean F1 Measure
-       St Dev F1 Measure, Micro Ave F1 Measure for SVM and Naive Bayes classifier
-Should be called for each binary class.
-To choose number of features:
-
-plot(1:50, chisq_10$"NAIVE BAYES"$"Mean F1 Measure",type="o",pch=4,col="blue",
-     xlab="Number of Features", ylab="Mean F1 Score",xlim=c(1,50),ylim=c(0,0.9))
-lines(1:50, ig_10$"NAIVE BAYES"$"Mean F1 Measure",type="o",pch=1,col="red")
-legend("right",inset=.05,c("NB CS","NB IG"),
-       col=c("blue","red"),pch=c(4,1), lty=1,
-       title=expression(italic("corn")),bty="n")
+  - IG#.txt, where # is 1 to 10, corresponding to most populous classes as in report.
+       -> these are raw outputs of classifier and feature selection evaluation for Information 
+          Gain.
+  - CS#.txt, where # is 1 to 10, corresponding to most populous classes as in report.
+       -> these are raw outputs of classifier and feature selection evaluation for Chi-Squared.
        
-To compare classifiers:   
+  - t_tests.txt
+       -> raw results of performing t-tests on pairs described in report, to determine SVM>NB.
   
-t.test(chisq_1$"SVM"$"Accuracy"[,50],
-       chisq_1$"NAIVE BAYES"$"Accuracy"[,49],
-       alternative="greater",paired=TRUE,conf.level=0.95)
+  - bestfeatures.txt
+       -> listing of best features for each of the 10 most populous classes, obtained by
+          performing the optimal model on each of them - used for clustering.
 
-4 Topic models
-evalClassifierTM (train_corpus,train_class,nFolds,nTopics)
-Input  - train_corpus  - object of type VCorpus
-         train_class - data frame with columns of binary classes  
-         fSelectFunc - function from package fSelect for evaluation importance of features
-         nFolds - integer -  for nFolds cross-validation
-         nTopics - integer - number of topics
-Output is the same as in  evalClassifier. Should be called for each binary class.       
-         
-       
-5 Classification of testing data with best performing features and classifier
-classifySVM (train_corpus,train_class,test_corpus,test_class,fSelectFunc,nFeats)
 
-Input - train_corpus
-        train_class
-        test_corpus
-        test_class
-        fSelectFunc
-        nFeats - number of features chosen as a result of tests on training data from previous step
-As classifier SVM was chosen.
-
-Output - Accuracy,Precision,Recall,F1 Measure,Confusion Matrix, Best performing features,
-         SVM(trained classifier), Full feature list and ranking(for clustering).
-Should be called for each binary class
-
-6 Clustering
-a) K-means
-b) Hierarchical Agglomerative clustering
-c) Gaussian finite mixture model fitted by EM algorithm 
-
-To plot using Principal components:
-
-plot(prcomp(y)$x, col=fit3$cl,pch=20, cex=0.5)
-
- 
- clustCMf (groups,classes)
- Input - groups (Important! colnames(groups2)<-"groups")
-         classes 
- Output - analog of contingency table
- Contains quantity of instances of each class in each cluster normalized by number of instances in cluster
- 
 
