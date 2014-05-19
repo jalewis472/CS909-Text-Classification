@@ -9,11 +9,6 @@ require(openNLP)
 require(openNLPdata)
 require(rJava)
 require(SnowballC)
-require(modeltools)
-require(topicmodels)
-require(e1071)
-require(caret)
-require(FSelector)
 
 
 #################################################################
@@ -115,6 +110,12 @@ combinedCorpus <- preprocessCorpus(combinedCorpus)
 ### Aim is to do xval w diff classifiers to find best performing
 ### classifiers and also feature selection methods.
 ### After this we can apply the best to testing data and cluster.
+
+require(modeltools)
+require(topicmodels)
+require(e1071)
+require(caret)
+require(FSelector)
 
 # Build class vector for training/testing data for 10 most populous classes
 classNames=c("earn","acq","money-fx","grain","crude",
